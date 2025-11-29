@@ -1,10 +1,22 @@
 import smolagents
 
-import src.autoboltagent.fastener_toolkit as ft
+from .fastener_toolkit import (
+    get_joint_constant,
+    get_tensile_stress_area,
+    bolt_yield_safety_factor,
+)
 
-class FastenatingCalculator(smolagents.Tool):
-    name = "FOS_Calculation"
-    description = "Calculates the factor of safety for fasteners using Yield Strength."
+
+class AnalyticalTool(smolagents.Tool):
+    """
+    A tool that calculates the factor of safety for a bolted connection using analytical expressions.
+
+    This tool uses established engineering formulas to compute the factor of safety for a bolted connection
+    based on the provided parameters.
+    """
+
+    name = "analytical_fos_calculation"
+    description = "Calculates the factor of safety using analytical expressions."
 
     inputs = {
         "desired_safety_factor": {
@@ -13,98 +25,103 @@ class FastenatingCalculator(smolagents.Tool):
         },
         "load": {
             "type": "number",
-            "description": "Load applied to the bolt in Newtons",
-        },
-        "yield_strength": {
-            "type": "number",
-            "description": "Yield strength of the bolt material in MPa",
+            "description": "Load applied to the bolted connection in Newtons",
         },
         "preload": {
             "type": "number",
             "description": "Preload applied to the bolt in Newtons",
         },
-        "pitch": {
+        "num_bolts": {
             "type": "number",
-            "description": "Pitch of the bolt in mm",
+            "description": "Number of bolts used in the joint",
         },
-        "E_b": {
+        "bolt_diameter": {
             "type": "number",
-            "description": "Young's modulus of the bolt in GPa",
+            "description": "Diameter of the bolt in mm",
         },
-        "E_m": {
+        "bolt_yield_strength": {
             "type": "number",
-            "description": "Young's modulus of the material in GPa",
+            "description": "Yield strength of the bolt material in MPa",
         },
-        "l": {
+        "bolt_elastic_modulus": {
             "type": "number",
-            "description": "Clamped Length in mm",
+            "description": "Elastic modulus of the bolt in GPa",
         },
-        "t_plate": {
+        "plate_thickness": {
             "type": "number",
             "description": "Thickness of the plate in mm",
         },
-        "sigma_plate": {
+        "plate_elastic_modulus": {
+            "type": "number",
+            "description": "Elastic modulus of the plate in GPa",
+        },
+        "plate_yield_strength": {
             "type": "number",
             "description": "Yield strength of the plate material in MPa",
         },
-        "d_major": {
+        "pitch": {
             "type": "number",
-            "description": "Major diameter of the bolt in mm",
-        },
-        "num_bolts": {
-            "type": "number",
-            "description": "Number of bolts used in the joint"
+            "description": "Pitch of the bolt in mm",
         },
     }
 
     output_type = "number"
 
     def forward(
-            self,
-            desired_safety_factor: float,
-            d_major: float,
-            load: float,
-            yield_strength: float,
-            preload: float,
-            E_b: float,
-            E_m: float,
-            l: float,
-            pitch: float,
-            t_plate: float,
-            sigma_plate: float,
-            num_bolts: int) -> str:
+        self,
+        desired_safety_factor: float,
+        load: float,
+        preload: float,
+        num_bolts: int,
+        bolt_diameter: float,
+        bolt_yield_strength: float,
+        bolt_elastic_modulus: float,
+        plate_thickness: float,
+        plate_elastic_modulus: float,
+        plate_yield_strength: float,
+        pitch: float,
+    ) -> str:
 
         load_per_bolt = load / num_bolts
         preload_per_bolt = preload / num_bolts
-        tensile_area = ft.get_tensile_stress_area(d_major, pitch)
+        tensile_area = get_tensile_stress_area(bolt_diameter, pitch)
 
-        c = ft.get_joint_constant(d_major, l, E_m, E_b)
+        c = get_joint_constant(
+            bolt_diameter,
+            plate_thickness * 2,
+            plate_elastic_modulus,
+            bolt_elastic_modulus,
+        )
 
-        bolt_sf = ft.bolt_yield_safety_factor(
-            c=c, load=load_per_bolt, preload=preload_per_bolt, a_ts=tensile_area, b_ys=yield_strength)
+        bolt_fos = bolt_yield_safety_factor(
+            c=c,
+            load=load_per_bolt,
+            preload=preload_per_bolt,
+            a_ts=tensile_area,
+            b_ys=bolt_yield_strength,
+        )
 
-        bearing_Area = d_major * t_plate * num_bolts
-        bearing_stress = load / bearing_Area
-        allowable_bearing_stress = 1.5 * sigma_plate
-        plate_fs = allowable_bearing_stress / bearing_stress
+        bearing_area = bolt_diameter * plate_thickness * num_bolts
+        bearing_stress = load / bearing_area
+        allowable_bearing_stress = 1.5 * plate_yield_strength
+        plate_fos = allowable_bearing_stress / bearing_stress
 
-
-        if bolt_sf > desired_safety_factor + 0.1:
+        if bolt_fos > desired_safety_factor + 0.1:
             bolt_comparison = "higher than desired"
-        elif bolt_sf < desired_safety_factor - 0.1:
+        elif bolt_fos < desired_safety_factor - 0.1:
             bolt_comparison = "lower than desired"
         else:
             bolt_comparison = "within acceptable range"
 
         # Compare plate FOS
-        if plate_fs > desired_safety_factor + 0.5:
+        if plate_fos > desired_safety_factor + 0.5:
             plate_comparison = "higher than desired"
-        elif plate_fs < desired_safety_factor - 0.5:
+        elif plate_fos < desired_safety_factor - 0.5:
             plate_comparison = "lower than desired"
         else:
             plate_comparison = "within acceptable range"
 
         return (
-            f"The factor of safety for bolts is {bolt_sf:.2f} ({bolt_comparison}) and "
-            f"the factor of safety for plates is {plate_fs:.2f} ({plate_comparison})."
+            f"The factor of safety for bolts is {bolt_fos:.2f} ({bolt_comparison}) and "
+            f"the factor of safety for plates is {plate_fos:.2f} ({plate_comparison})."
         )
