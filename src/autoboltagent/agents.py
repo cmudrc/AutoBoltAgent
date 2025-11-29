@@ -29,6 +29,7 @@ class GuessingAgent(smolagents.ToolCallingAgent):
             add_base_tools=False,
             model=model,
             instructions=BASE_INSTRUCTIONS,
+            verbosity_level=2,
         )
 
 
@@ -53,6 +54,7 @@ class LowFidelityAgent(smolagents.ToolCallingAgent):
             add_base_tools=False,
             model=model,
             instructions=BASE_INSTRUCTIONS + TOOL_USING_INSTRUCTION,
+            verbosity_level=2,
         )
 
 
@@ -77,6 +79,7 @@ class HighFidelityAgent(smolagents.ToolCallingAgent):
             add_base_tools=False,
             model=model,
             instructions=BASE_INSTRUCTIONS + TOOL_USING_INSTRUCTION,
+            verbosity_level=2,
         )
 
 
@@ -103,4 +106,5 @@ class DualFidelityAgent(smolagents.ToolCallingAgent):
             instructions=BASE_INSTRUCTIONS
             + TOOL_USING_INSTRUCTION
             + DUAL_FIDELITY_COORDINATION,
+            verbosity_level=2,
         )
