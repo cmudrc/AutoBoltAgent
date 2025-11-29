@@ -13,6 +13,8 @@ authors = [{name="Sriya"}, {name="Chris McComb", email="ccmcc2012@gmail.com"}]
 dependencies = [
     "autobolt@https://github.com/sriyanc2001/AutoBolt",
     "smolagents",
+    "pandas",
+    "numpy",
 ]
 [project.optional-dependencies]
 test = [

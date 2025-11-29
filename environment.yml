@@ -14,4 +14,6 @@ dependencies:
       - build123d
       - pyyaml
       - smolagents
-      - autobolt@https://github.com/sriyanc2001/AutoBolt
+      - pandas
+      - git+https://github.com/sriyanc2001/AutoBolt
+      - black
