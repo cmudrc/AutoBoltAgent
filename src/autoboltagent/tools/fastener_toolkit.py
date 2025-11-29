@@ -1,7 +1,7 @@
 import math
-import pandas
-import numpy
 
+import numpy
+import pandas
 
 # Parameters for the Cornwell equation for joints with two plates of the same material as described by Norton for
 # equation 15.19 and presented in table 15-8

@@ -1,10 +1,11 @@
 import smolagents
-from .tools import AnalyticalTool, FiniteElementTool
+
 from .prompts import (
     TOOL_USING_INSTRUCTION,
     BASE_INSTRUCTIONS,
     DUAL_FIDELITY_COORDINATION,
 )
+from .tools import AnalyticalTool, FiniteElementTool
 
 
 class GuessingAgent(smolagents.ToolCallingAgent):
