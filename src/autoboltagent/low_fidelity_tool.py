@@ -1,6 +1,6 @@
 import smolagents
 
-class FastenatingCalculator(transformers.Tool):
+class LowFidelityCalculator(transformers.Tool):
     name = "FOS_Calculation"
     description = "Calculates the factor of safety for fasteners using Yield Strength."
 

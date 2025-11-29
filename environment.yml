@@ -13,3 +13,4 @@ dependencies:
   - pip:
       - build123d
       - pyyaml
+      - smolagents
